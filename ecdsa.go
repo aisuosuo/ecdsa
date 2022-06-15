@@ -28,6 +28,7 @@ func NewPublicKey(key *ecdsa.PublicKey) PublicKey {
 	}
 }
 
+// EncodeMessage you need to customize this method
 func EncodeMessage(message []byte) (x, y *big.Int) {
 	length := len(message)
 	x = new(big.Int).SetBytes(message[:length/2])
@@ -35,6 +36,7 @@ func EncodeMessage(message []byte) (x, y *big.Int) {
 	return
 }
 
+// DecodeMessage you need to customize this method
 func DecodeMessage(x, y *big.Int) []byte {
 	return bytes.Join([][]byte{x.Bytes(), y.Bytes()}, nil)
 }
