@@ -18,7 +18,7 @@ func TestKey(t *testing.T) {
 	pubKey := NewPublicKey(&privateKey.PublicKey)
 
 	message := "hello world"
-	t.Log("message", message)
+	t.Log("message:", message)
 	messageX, messageY := EncodeMessage([]byte(message))
 	t.Logf("messageX:%s, messageY:%s", hex.EncodeToString(messageX.Bytes()), hex.EncodeToString(messageY.Bytes()))
 
@@ -36,7 +36,7 @@ func TestKey(t *testing.T) {
 	t.Logf("decryptX:%s, decryptY:%s", hex.EncodeToString(decryptX.Bytes()), hex.EncodeToString(decryptY.Bytes()))
 	messageByte := DecodeMessage(decryptX, decryptY)
 	message = string(messageByte)
-	t.Log("message:", message)
+	t.Log("decrypt message:", message)
 }
 
 func TestCruve(t *testing.T) {
