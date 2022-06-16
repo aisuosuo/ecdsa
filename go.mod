@@ -1,4 +1,4 @@
-module source/aisuosuo/ecdsa
+module github.com/aisuosuo/ecdsa
 
 go 1.18
 
