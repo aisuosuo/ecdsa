@@ -3,10 +3,16 @@ package ecdsa
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
+	"encoding/hex"
 	"errors"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"math/big"
 )
+
+var Curve = secp256k1.S256()
 
 type PrivateKey struct {
 	*ecdsa.PrivateKey
@@ -16,19 +22,60 @@ type PublicKey struct {
 	*ecdsa.PublicKey
 }
 
-func NewPrivateKey(key *ecdsa.PrivateKey) PrivateKey {
-	return PrivateKey{
+func GeneratePrivateKey() (*PrivateKey, error) {
+	key, err := crypto.GenerateKey()
+	if err != nil {
+		return nil, err
+	}
+	return &PrivateKey{
+		key,
+	}, nil
+}
+
+func NewPrivateKeyFromKey(key *ecdsa.PrivateKey) *PrivateKey {
+	return &PrivateKey{
 		key,
 	}
 }
 
-func NewPublicKey(key *ecdsa.PublicKey) PublicKey {
-	return PublicKey{
+func NewPublicKeyFromKey(key *ecdsa.PublicKey) *PublicKey {
+	return &PublicKey{
 		key,
 	}
 }
 
-// EncodeMessage you need to customize this method
+func NewPrivateKeyFromHex(privkeyHex string) (*PrivateKey, error) {
+	key, err := crypto.HexToECDSA(privkeyHex)
+	if err != nil {
+		return nil, err
+	}
+	return NewPrivateKeyFromKey(key), nil
+}
+
+func NewPublicKeyFromHex(pubkeyHex string) (*PublicKey, error) {
+	hexToBytes, err := hex.DecodeString(pubkeyHex)
+	if err != nil {
+		return nil, err
+	}
+	x, y := UnmarshalPublicKey(hexToBytes)
+	key := &ecdsa.PublicKey{Curve: Curve, X: x, Y: y}
+	return NewPublicKeyFromKey(key), nil
+}
+
+func UnmarshalPublicKey(data []byte) (x, y *big.Int) {
+	curve := Curve
+	byteLen := (curve.Params().BitSize + 7) / 8
+	if len(data) == 1+2*byteLen {
+		return elliptic.Unmarshal(curve, data)
+	}
+	if len(data) == 1+byteLen {
+		return secp256k1.DecompressPubkey(data)
+	}
+
+	return
+}
+
+// EncodeMessage Encode plaintext as a point on an elliptic curve (you can customize this method)
 func EncodeMessage(message []byte) (x, y *big.Int) {
 	length := len(message)
 	x = new(big.Int).SetBytes(message[:length/2])
@@ -36,7 +83,7 @@ func EncodeMessage(message []byte) (x, y *big.Int) {
 	return
 }
 
-// DecodeMessage you need to customize this method
+// DecodeMessage Decode a point on an elliptic curve to plaintext (you can customize this method)
 func DecodeMessage(x, y *big.Int) []byte {
 	return bytes.Join([][]byte{x.Bytes(), y.Bytes()}, nil)
 }
@@ -67,6 +114,12 @@ func paddedAppend(size uint, dst, src []byte) []byte {
 		dst = append(dst, 0)
 	}
 	return append(dst, src...)
+}
+
+func (p *PrivateKey) Public() PublicKey {
+	return PublicKey{
+		&p.PrivateKey.PublicKey,
+	}
 }
 
 // Decrypt encrypt:C = {rG, M+rQ}, decrypt:M+rQ-d(rG) = M+r(dG)-d(rG) = M
