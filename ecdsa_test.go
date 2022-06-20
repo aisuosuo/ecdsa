@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Message       = "hello"
+	Message       = "王丰鞍山市啊爱上爱上爱上爱上爱上撒撒撒算法"
 	TmpPrivateKey = "4b4966191bae34e99a41085d4ff7a244f12e25b67be5507064d4f0e3bb378d45"
 	TmpPublicKey  = "03c70d10ac413249c55ff39faa3fa92eaa44c79ed3749913232b52a704906c5417"
 )
@@ -22,7 +22,14 @@ func TestCrypto(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	mx, my := EncodeMessage([]byte(Message))
+
+	t.Log(len([]byte(Message)))
+
+	mx, my, err := EncodeMessage([]byte(Message))
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	encrypt, err := publicKey.Encrypt(mx, my)
 	if err != nil {
 		t.Error(err)
@@ -62,7 +69,11 @@ func TestCrypto2(t *testing.T) {
 
 	message := "hello world"
 	t.Log("message:", message)
-	messageX, messageY := EncodeMessage([]byte(message))
+	messageX, messageY, err := EncodeMessage([]byte(message))
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	cipher, err := pubKey.Encrypt(messageX, messageY)
 	if err != nil {
 		t.Error(err)

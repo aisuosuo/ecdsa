@@ -76,8 +76,12 @@ func UnmarshalPublicKey(data []byte) (x, y *big.Int) {
 }
 
 // EncodeMessage Encode plaintext as a point on an elliptic curve (you can customize this method)
-func EncodeMessage(message []byte) (x, y *big.Int) {
+func EncodeMessage(message []byte) (x, y *big.Int, err error) {
 	length := len(message)
+	if length > 64 {
+		err = errors.New("message length exceed 64")
+		return
+	}
 	x = new(big.Int).SetBytes(message[:length/2])
 	y = new(big.Int).SetBytes(message[length/2:])
 	return
